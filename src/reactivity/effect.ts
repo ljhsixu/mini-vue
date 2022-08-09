@@ -8,7 +8,8 @@ class ReactiveEffect {
   run() {
     // 在每次执行Effect时 都将 activeEffect 等于这个 实例化的 ReactiveEffect
     activeEffect = this;
-    this._fn();
+    // 需要将fn返回结果拿到 所以return 出去
+    return this._fn();
   }
 }
 // 收集依赖必须 有一容器
@@ -56,4 +57,8 @@ export function effect(fn) {
   const _effect = new ReactiveEffect(fn);
 
   _effect.run();
+
+  // 因为执行后需要返回一个runner 函数 就相当于 function(fn) 所以直接return _effect.run()这个函数
+  // 但是因为 在run 里面执行了 activeEffect = this; 这里涉及到了 this指向 就是用bind 将 this执行 指向为实例对象
+  return  _effect.run.bind(_effect);
 }
