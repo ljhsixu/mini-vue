@@ -1,15 +1,15 @@
 class ReactiveEffect {
   private _fn: any;
 
-  constructor(fn) {
+  constructor(fn , public scheduler?) {
     this._fn = fn;
   }
 
   run() {
     // 在每次执行Effect时 都将 activeEffect 等于这个 实例化的 ReactiveEffect
     activeEffect = this;
-    // 需要将fn返回结果拿到 所以return 出去
     return this._fn();
+    
   }
 }
 // 收集依赖必须 有一容器
@@ -35,6 +35,7 @@ export function trank(target, key) {
   if (!dep) {
     // 初始化一个Set
     dep = new Set();
+    depsMap.set(key,dep)
   }
   // 当每次执行trank 时就将activeEffect 收集起来
   dep.add(activeEffect);
@@ -45,17 +46,23 @@ export function tigger(target, key) {
   let depsMap = targetMap.get(target);
   let dep = depsMap.get(key);
   // 将dep 取出来 遍历 因为 每一个都是 effect 都是 一个 类 ReactiveEffect 所以执行里面的effect 里面的run 方法 就将 所有的fn 都执行了
-  for (let effect of dep) {
-    effect.run();
+  for (const effect of dep) {
+
+    if(effect.scheduler){
+      
+      effect.scheduler()
+    }else {
+      
+      effect.run();
+    }
   }
 }
 
 // 创建一个 全局变量
 let activeEffect;
-export function effect(fn) {
+export function effect(fn, options:any = {}) {
   // 封装一个 ReactiveEffect 里面 定义方法触发 传递进来的fn
-  const _effect = new ReactiveEffect(fn);
-
+  const _effect = new ReactiveEffect(fn,options.scheduler);
   _effect.run();
 
   // 因为执行后需要返回一个runner 函数 就相当于 function(fn) 所以直接return _effect.run()这个函数
