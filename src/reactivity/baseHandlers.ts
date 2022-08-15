@@ -1,5 +1,5 @@
 import { trank,tigger } from "./effect"
-
+import {reactiveFlags} from './reactive'
 const get = createGetter()
 const set = createSetter()
 const readonlyGet = createGetter(true)
@@ -8,11 +8,17 @@ function createGetter(isReadOnly = false){
          // 如果传入的是 {foo: 1}
          // target 为 {foo:1}
          // key 为 1
+         if(key === reactiveFlags.IS_REACTIVE){
+            return !isReadOnly
+         }else if(key === reactiveFlags.IS_READONLY) {
+            return isReadOnly
+         }
          let res = Reflect.get(target,key)
          //TODO: 收集依赖
          if(!isReadOnly){
-         trank(target,key)
- 
+
+
+         trank(target,key) 
          }
          return res
      }

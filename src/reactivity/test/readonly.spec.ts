@@ -1,14 +1,16 @@
-import {readonly}from '../reactive'
+import {readonly ,isReadOnly}from '../reactive'
 describe("readnoly",()=>{
     it("happy path",()=>{
         const original = {foo:1,bar:{baz:1}}
         const warpped = readonly(original)
         expect(warpped).not.toBe(original)
         expect(warpped.foo).toBe(1)
+        expect(isReadOnly(warpped)).toBe(true)
+        expect(isReadOnly(original)).toBe(false)
     })
 
 
-    it('warn then call set'),()=>{
+    it("warn then call set",()=>{
 
         console.warn = jest.fn()
 
@@ -19,5 +21,5 @@ describe("readnoly",()=>{
         user.age = 10
 
         expect(console.warn).toBeCalled()
-    }
+    })
 })
