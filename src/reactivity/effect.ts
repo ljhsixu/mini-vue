@@ -1,8 +1,14 @@
+import {extend}from '../shared'
+
 class ReactiveEffect {
   private _fn: any;
-
-  constructor(fn , public scheduler?) {
+  public scheduler : Function | undefined
+  onStop?:()=>void
+  deps = []
+  active = true
+  constructor(fn ,  scheduler?: Function) {
     this._fn = fn;
+    this.scheduler = scheduler
   }
 
   run() {
@@ -11,6 +17,24 @@ class ReactiveEffect {
     return this._fn();
     
   }
+  stop(){
+    if(this.active){
+      if(this.onStop){
+        this.onStop()
+      }
+      cleanupEffect(this)
+      this.active = false
+    }
+  }
+}
+function cleanupEffect(effect) {
+  // 找到所有依赖这个 effect 的响应式对象
+  // 从这些响应式对象里面把 effect 给删除掉
+  effect.deps.forEach((dep) => {
+    dep.delete(effect);
+  });
+
+  // effect.deps.length = 0;
 }
 // 收集依赖必须 有一容器
 const targetMap = new Map();
@@ -37,8 +61,11 @@ export function trank(target, key) {
     dep = new Set();
     depsMap.set(key,dep)
   }
+  if(!activeEffect) return 
   // 当每次执行trank 时就将activeEffect 收集起来
   dep.add(activeEffect);
+ 
+  activeEffect.deps.push(dep)
 }
 // 触发依赖
 export function tigger(target, key) {
@@ -65,7 +92,16 @@ export function effect(fn, options:any = {}) {
   const _effect = new ReactiveEffect(fn,options.scheduler);
   _effect.run();
 
+  extend(_effect,options)
   // 因为执行后需要返回一个runner 函数 就相当于 function(fn) 所以直接return _effect.run()这个函数
   // 但是因为 在run 里面执行了 activeEffect = this; 这里涉及到了 this指向 就是用bind 将 this执行 指向为实例对象
-  return  _effect.run.bind(_effect);
+   const runner: any =  _effect.run.bind(_effect);
+
+   runner.effect = _effect
+   return runner
+}
+
+
+export function stop (runner){
+  runner.effect.stop()
 }

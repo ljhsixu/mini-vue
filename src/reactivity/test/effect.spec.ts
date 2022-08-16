@@ -1,7 +1,7 @@
 
 import {reactive} from '../reactive'
 
-import {effect} from '../effect'
+import {effect , stop} from '../effect'
 describe('effect', ()=>{
     it.skip('happy path', ()=>{
         const user = reactive({
@@ -40,7 +40,40 @@ describe('effect', ()=>{
 
     })
 
+    it('stop',()=>{
+      let dummy;
+    const obj = reactive({ prop: 1 });
+    const runner = effect(() => {
+      dummy = obj.prop;
+    });
+    obj.prop = 2;
+    expect(dummy).toBe(2);
+    stop(runner);
+    obj.prop = 3
 
+    expect(dummy).toBe(2);
+
+    // // stopped effect should still be manually callable
+    // runner();
+    // expect(dummy).toBe(3);
+    })
+
+
+    it("onStop",()=>{
+      const obj = reactive({
+        foo:1
+      })
+      const onStop = jest.fn()
+      let dummy 
+      const runner = effect(()=>{
+        dummy = obj.foo
+      },
+      {
+        onStop,
+      })
+      stop(runner)
+      expect(onStop).toBeCalledTimes(1)
+    })
     it("scheduler", () => {
         // 1.通过effect 的第二个参数给定一个 scheduler 的fn
         // 2.当effect 第一次执行的时候还会执行fn
