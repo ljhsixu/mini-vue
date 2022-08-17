@@ -1,5 +1,9 @@
 import {extend}from '../shared'
 
+// 创建一个 全局变量
+let activeEffect;
+
+let shouldTrack
 class ReactiveEffect {
   private _fn: any;
   public scheduler : Function | undefined
@@ -12,9 +16,17 @@ class ReactiveEffect {
   }
 
   run() {
+
+    if(!this.active){
+     return this._fn();
+    }
+    shouldTrack = true
     // 在每次执行Effect时 都将 activeEffect 等于这个 实例化的 ReactiveEffect
     activeEffect = this;
-    return this._fn();
+    const result = this._fn();
+    // reset
+    shouldTrack = false
+    return result
     
   }
   stop(){
@@ -34,12 +46,15 @@ function cleanupEffect(effect) {
     dep.delete(effect);
   });
 
-  // effect.deps.length = 0;
+  effect.deps.length = 0;
 }
 // 收集依赖必须 有一容器
 const targetMap = new Map();
 // 收集依赖
 export function trank(target, key) {
+if(!isTranking()) return 
+ 
+
   // 如果收集依赖必须 要根据映射关系 target -> key -> dep
 
   // 根据target 将 key 存到 大容器里面 然后根据 target 取出key 在从 key 里面取出对应的方法
@@ -61,11 +76,17 @@ export function trank(target, key) {
     dep = new Set();
     depsMap.set(key,dep)
   }
-  if(!activeEffect) return 
-  // 当每次执行trank 时就将activeEffect 收集起来
-  dep.add(activeEffect);
+
+if(dep.has(activeEffect)) return 
+   // 当每次执行trank 时就将activeEffect 收集起来
+   dep.add(activeEffect);
  
   activeEffect.deps.push(dep)
+}
+
+function isTranking (){
+  return  shouldTrack &&  activeEffect!== undefined
+
 }
 // 触发依赖
 export function tigger(target, key) {
@@ -85,8 +106,6 @@ export function tigger(target, key) {
   }
 }
 
-// 创建一个 全局变量
-let activeEffect;
 export function effect(fn, options:any = {}) {
   // 封装一个 ReactiveEffect 里面 定义方法触发 传递进来的fn
   const _effect = new ReactiveEffect(fn,options.scheduler);
