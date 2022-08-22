@@ -1,11 +1,14 @@
+
 import { trank,tigger } from "./effect"
 import {reactiveFlags} from './reactive'
 import {readonly ,reactive} from './reactive'
 import {isObject} from '../shared/index'
+import {extend} from '../shared/index'
 const get = createGetter()
 const set = createSetter()
 const readonlyGet = createGetter(true)
-function createGetter(isReadonly = false){
+const shallowReadonlyGet = createGetter(true,true)
+function createGetter(isReadonly = false,shallow=false){
     return  function get(target:any,key:any){
          // 如果传入的是 {foo: 1}
          // target 为 {foo:1}
@@ -16,6 +19,12 @@ function createGetter(isReadonly = false){
             return isReadonly
          }
          let res = Reflect.get(target,key)
+
+         if(shallow){
+            return res
+         }
+
+
          if (isObject(res)) {
             // 把内部所有的是 object 的值都用 reactive 包裹，变成响应式对象
             // 如果说这个 res 值是一个对象的话，那么我们需要把获取到的 res 也转换成 reactive
@@ -54,3 +63,7 @@ export const readnolyHandlers = {
         return true
     }
 }
+
+export const shallowReadonlyHandlers = extend({},readnolyHandlers,{
+    get: shallowReadonlyGet
+    })
