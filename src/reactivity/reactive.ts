@@ -33,3 +33,7 @@ function creatActiveObject(raw:any,baseHandlers){
          // 返回一个 proxy
     return new Proxy(raw,baseHandlers)
 }
+
+export function isProxy(value){
+   return isReactive(value) || isReadonly(value)
+}
