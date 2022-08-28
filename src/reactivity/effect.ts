@@ -77,14 +77,17 @@ if(!isTranking()) return
     depsMap.set(key,dep)
   }
 
-if(dep.has(activeEffect)) return 
-   // 当每次执行trank 时就将activeEffect 收集起来
-   dep.add(activeEffect);
- 
-  activeEffect.deps.push(dep)
+  trankEffects(dep)
 }
+export function trankEffects(dep){
+  
+if(dep.has(activeEffect)) return 
+// 当每次执行trank 时就将activeEffect 收集起来
+dep.add(activeEffect);
 
-function isTranking (){
+activeEffect.deps.push(dep)
+}
+export function isTranking (){
   return  shouldTrack &&  activeEffect!== undefined
 
 }
@@ -94,6 +97,10 @@ export function tigger(target, key) {
   let depsMap = targetMap.get(target);
   let dep = depsMap.get(key);
   // 将dep 取出来 遍历 因为 每一个都是 effect 都是 一个 类 ReactiveEffect 所以执行里面的effect 里面的run 方法 就将 所有的fn 都执行了
+  tiggerEffest(dep)
+}
+
+export function tiggerEffest(dep){
   for (const effect of dep) {
 
     if(effect.scheduler){
