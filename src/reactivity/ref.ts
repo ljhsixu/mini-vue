@@ -5,6 +5,7 @@ import { reactive } from "./reactive";
 class RefImpl {
   private _value: any;
   private dep: any;
+  private __v_isRef = true
   constructor(value) {
     this._value = convert(value);
     this.dep = new Set();
@@ -32,4 +33,12 @@ function trankRefValue(ref) {
 }
 export function ref(value) {
   return new RefImpl(value);
+}
+
+export function isRef(ref) {
+  return !!ref.__v_isRef
+}
+
+export function unRef(ref){
+  return ref.__v_isRef? ref.value : ref
 }
