@@ -4,7 +4,7 @@ import {extend}from '../shared'
 let activeEffect;
 
 let shouldTrack
-class ReactiveEffect {
+export class ReactiveEffect {
   private _fn: any;
   public scheduler : Function | undefined
   onStop?:()=>void
@@ -51,8 +51,8 @@ function cleanupEffect(effect) {
 // 收集依赖必须 有一容器
 const targetMap = new Map();
 // 收集依赖
-export function trank(target, key) {
-if(!isTranking()) return 
+export function track(target, key) {
+if(!isTracking()) return 
  
 
   // 如果收集依赖必须 要根据映射关系 target -> key -> dep
@@ -77,17 +77,17 @@ if(!isTranking()) return
     depsMap.set(key,dep)
   }
 
-  trankEffects(dep)
+  trackEffects(dep)
 }
-export function trankEffects(dep){
+export function trackEffects(dep){
   
 if(dep.has(activeEffect)) return 
-// 当每次执行trank 时就将activeEffect 收集起来
+// 当每次执行track 时就将activeEffect 收集起来
 dep.add(activeEffect);
 
 activeEffect.deps.push(dep)
 }
-export function isTranking (){
+export function isTracking (){
   return  shouldTrack &&  activeEffect!== undefined
 
 }
@@ -97,10 +97,10 @@ export function tigger(target, key) {
   let depsMap = targetMap.get(target);
   let dep = depsMap.get(key);
   // 将dep 取出来 遍历 因为 每一个都是 effect 都是 一个 类 ReactiveEffect 所以执行里面的effect 里面的run 方法 就将 所有的fn 都执行了
-  tiggerEffest(dep)
+  triggerEffects(dep)
 }
 
-export function tiggerEffest(dep){
+export function triggerEffects(dep){
   for (const effect of dep) {
 
     if(effect.scheduler){

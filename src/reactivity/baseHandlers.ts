@@ -1,5 +1,5 @@
 
-import { trank,tigger } from "./effect"
+import { track,tigger } from "./effect"
 import {reactiveFlags} from './reactive'
 import {readonly ,reactive} from './reactive'
 import {isObject} from '../shared/index'
@@ -35,7 +35,7 @@ function createGetter(isReadonly = false,shallow=false){
          if(!isReadonly){
 
 
-         trank(target,key) 
+         track(target,key) 
          }
          return res
      }

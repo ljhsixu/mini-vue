@@ -1,5 +1,5 @@
 import { isObject } from "./../shared/index";
-import { trankEffects, tiggerEffest, isTranking } from "./effect";
+import { trackEffects, triggerEffects, isTracking } from "./effect";
 import { hsaChanged } from "../shared";
 import { reactive } from "./reactive";
 class RefImpl {
@@ -11,24 +11,24 @@ class RefImpl {
     this.dep = new Set();
   }
   get value() {
-    trankRefValue(this);
+    trackRefValue(this);
     return this._value;
   }
 
   set value(newValue) {
-    // 先判断 新旧两个值是否相等 如果相等 就 不进行执行 tiggerEffest
+    // 先判断 新旧两个值是否相等 如果相等 就 不进行执行 triggerEffects
     if (hsaChanged(newValue, this._value)) return;
     this._value = convert(newValue);
-    tiggerEffest(this.dep);
+    triggerEffects(this.dep);
   }
 }
 
 function convert(value) {
   return isObject(value) ? reactive(value) : value;
 }
-function trankRefValue(ref) {
-  if (isTranking()) {
-    trankEffects(ref.dep);
+function trackRefValue(ref) {
+  if (isTracking()) {
+    trackEffects(ref.dep);
   }
 }
 export function ref(value) {
